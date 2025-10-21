@@ -10,15 +10,20 @@ const sequelize = new Sequelize(
     port: process.env.DB_PORT || 5432,
     dialect: "postgres",
     logging: false,
-    dialectOptions:
-      process.env.NODE_ENV != "test"
-        ? {
-            ssl: {
-              require: true, // forces SSL connection
-              rejectUnauthorized: false, // use 'false' if you do not have a CA certificate; not ideal for production
-            },
-          }
-        : {},
+       // Make SSL optional and configurable for local development
+    dialectOptions: (() => {
+      const useSsl = process.env.DB_SSL === "true";
+      if (process.env.NODE_ENV === "test") return {};
+      if (useSsl) {
+        return {
+          ssl: {
+            require: true,
+            rejectUnauthorized: false,
+          },
+        };
+      }
+      return {};
+    })(),
   }
 );
 

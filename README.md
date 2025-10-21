@@ -2,9 +2,10 @@
 
 
 # **Health Check API**
-
+A simple Node.js REST API that provides a health check endpoint (`/healthz`) to verify database connectivity. The API uses Express.js and Sequelize ORM to interact with a PostgreSQL database.
 
 ## **Features**
+
 - **Health Check Endpoint (`/healthz`)**
   - **Database Connectivity:** Inserts a record into the database to verify the connection.
   - Returns:
@@ -17,6 +18,7 @@
 ---
 
 ## **Tech Stack**
+
 - **Node.js**: Backend runtime environment.
 - **Express.js**: Web framework for building RESTful APIs.
 - **Sequelize**: ORM for PostgreSQL.
@@ -26,6 +28,7 @@
 ---
 
 ## **Project Structure**
+
 ```
 .github/
 └── workflows/        # GitHub Actions workflow files
@@ -66,6 +69,7 @@ start.sh             # Script used by Packer or local setup
 ## **Setup Instructions**
 
 ### **1. Prerequisites**
+
 - Install **Node.js** (>= 16.x).
 - Install **Docker** for PostgreSQL setup.
 - Install **npm** for package management.
@@ -73,15 +77,18 @@ start.sh             # Script used by Packer or local setup
 ---
 
 ### **2. Clone the Repository**
+
 ```bash
-git clone https://github.com/your-username/health-check-api.git
-cd health-check-api
+git clone https://github.com/csye6225-sjp/webapp.git
+cd webapp
 ```
 
 ---
 
 ### **3. Start PostgreSQL with Docker**
+
 Run the following command to start a PostgreSQL container:
+
 ```bash
 docker run --name webapp-db -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydatabase -p 5433:5432 -d postgres
 ```
@@ -89,7 +96,9 @@ docker run --name webapp-db -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassw
 ---
 
 ### **4. Install Dependencies**
+
 Install the required Node.js dependencies:
+
 ```bash
 npm install
 ```
@@ -97,21 +106,31 @@ npm install
 ---
 
 ### **5. Run the Application**
+
 Start the server:
+
 ```bash
-node server.js
+node src/server.js
 ```
 
 By default, the server runs on `http://localhost:8080`.
 
+You can also run the server with env vars in one line (useful for local Docker Postgres):
+
+```bash
+NODE_ENV=development DB_HOST=localhost DB_PORT=5433 DB_USER=myuser DB_PASSWORD=mypassword DB_NAME=mydatabase DB_SSL=false node src/server.js
+```
 ---
 
 ## **API Documentation**
 
 ### **Health Check Endpoint**
+
 #### **GET `/healthz`**
+
 - **Purpose**: Checks the service's health by testing the database connection.
 - **Behavior**:
+
   - Inserts a record into the `health_check` table.
   - Returns:
     - `200 OK` if successful.
@@ -125,12 +144,15 @@ By default, the server runs on `http://localhost:8080`.
   - `405 Method Not Allowed`: Unsupported HTTP method.
 
 #### **Examples**
+
 - **Success (`200 OK`)**
+
   ```bash
   curl -X GET http://localhost:8080/healthz
   ```
 
 - **Unsupported Method (`405 Method Not Allowed`)**
+
   ```bash
   curl -X POST http://localhost:8080/healthz
   ```
@@ -145,9 +167,11 @@ By default, the server runs on `http://localhost:8080`.
 ## **Testing**
 
 ### **Run Tests Manually**
+
 You can manually test the `/healthz` endpoint using `curl` or a tool like Postman.
 
 ### **Test Cases**
+
 1. **GET `/healthz`**
    - Expected: `200 OK` if the database is connected.
 2. **GET `/healthz` with Payload**
@@ -161,6 +185,7 @@ You can manually test the `/healthz` endpoint using `curl` or a tool like Postma
 ---
 
 ## Certification
+
 ### **Certificate Import**
 
 ```bash
@@ -171,15 +196,58 @@ aws acm import-certificate \
   --region us-east-1 \
   --profile demo
 ```
+## Docker cleanup (local development)
+
+If you need to remove the local Postgres container or reclaim Docker space, here are safe commands and options.
+
+Safe: stop and remove a specific container
+
+```bash
+docker stop webapp-db-1 && docker rm webapp-db-1
+```
+
+Safe: remove dangling images and volumes
+
+```bash
+docker image prune
+docker volume prune
+```
+
+Destructive: remove all unused resources (includes volumes)
+
+```bash
+docker system prune --volumes
+```
+
+MacOS notes
+
+- If you use Docker Desktop, open the app and use Troubleshoot → Clean/Purge to reclaim disk.
+- 
+## Packer & Terraform
+
+This project is packaged into an AMI using **Packer**; the Packer template is at `packer/ubuntu-node.pkr.hcl`. Typical steps:
+
+1. Create the application artifact:
+
+```bash
+  npm run zip
+```
+
+2. Build AMI with Packer (local example):
+
+```bash
+  packer build packer/ubuntu-node.pkr.hcl
+```
+
+The infrastructure for deploying the AMI is in the companion `tf-aws-infra` repo in this workspace — it uses Terraform to create VPC, ALB, ASG, RDS, S3, Secrets Manager and KMS keys. For Terraform docs and downloads see: https://www.terraform.io/
 
 ## **Known Issues**
-- None at the moment. Feel free to raise issues or PRs if you find bugs.
-- 
 
+- None at the moment. Feel free to raise issues or PRs if you find bugs.
+-
 
 ---
 
 ## **License**
+
 This project is licensed under the MIT License. See the `LICENSE` file for more details.
-
-
